@@ -1,4 +1,5 @@
 class User < ActiveRecord::Base
+  has_many :microposts, dependent: :destroy
 
   attr_accessor :remember_token
   before_save { self.email = email.downcase }
@@ -44,11 +45,16 @@ class User < ActiveRecord::Base
     update_attribute(:remember_digest, nil)
   end
 
+  # See "Following users" for the full implementation.
+  def feed
+    Micropost.where("user_id = ?", id)
+  end
+
   private
 
   def user_params
     params.require(:user).permit(:name, :email, :password,
-                                 :password_confirmation)
+    :password_confirmation)
   end
 
   # Before filters
