@@ -1,4 +1,5 @@
 class User < ActiveRecord::Base
+
   attr_accessor :remember_token
   before_save { self.email = email.downcase }
   validates :name,  presence: true, length: { maximum: 50 }
@@ -8,6 +9,7 @@ class User < ActiveRecord::Base
                     uniqueness: { case_sensitive: false }
   has_secure_password
   validates :password, presence: true, length: { minimum: 6 }
+  validates :password, presence: true, length: { minimum: 6 }, allow_nil: true
 
   # Returns the hash digest of the given string.
   # Returns the hash digest of the given string.
@@ -41,4 +43,28 @@ class User < ActiveRecord::Base
   def forget
     update_attribute(:remember_digest, nil)
   end
+
+  private
+
+  def user_params
+    params.require(:user).permit(:name, :email, :password,
+                                 :password_confirmation)
+  end
+
+  # Before filters
+
+  # Confirms a logged-in user.
+  def logged_in_user
+    unless logged_in?
+      flash[:danger] = "Please log in."
+      redirect_to login_url
+    end
+  end
+
+  # Confirms the correct user.
+def correct_user
+  @user = User.find(params[:id])
+  redirect_to(root_url) unless current_user?(@user)
+end
+
 end
